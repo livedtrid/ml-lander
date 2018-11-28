@@ -18,6 +18,7 @@ public class LanderAgent : Agent
 
     Rigidbody agentRB;
     Vector3 startPosition;
+    Quaternion startRotation;
 
     private const int NoAction = 0;  // do nothing!
     private const int Up = 1;
@@ -30,16 +31,22 @@ public class LanderAgent : Agent
 
     public override void InitializeAgent()
     {
+        Monitor.SetActive(true);
+
+
         base.InitializeAgent();
         academy = FindObjectOfType(typeof(LanderAcademy)) as LanderAcademy;
-        
+
         agentRB = GetComponent<Rigidbody>();
         startPosition = agentRB.position;
+        startRotation = agentRB.rotation;
 
     }
 
     public override void CollectObservations()
     {
+        AddVectorObs(agentRB.velocity); //Add the rocket velocity to the observation vector
+
 
     }
 
@@ -48,13 +55,43 @@ public class LanderAgent : Agent
         //Action vector should be set on the brain
 
         MoveAgent(vectorAction);
+        CheckAgentState();
 
+        //Debug.Log("vectorAction[0] " + vectorAction[0].ToString());
+        Debug.Log("agent_state " + agent_state.ToString());
+
+        switch (agent_state)
+        {
+            case AGENT_STATES.STEADY:
+                AddReward(0.01f);
+                break;
+            case AGENT_STATES.TILTED:
+                AddReward(-0.01f);
+                break;
+            case AGENT_STATES.FAST:
+                AddReward(-0.01f);
+                break;
+            case AGENT_STATES.CRASHED:
+                Debug.LogWarning("-1");
+                AddReward(-1f);
+                AgentReset();
+                Done();
+                break;
+            default:
+                break;
+        }
     }
+
+
 
     public override void AgentReset()
     {
         agentRB.velocity = default(Vector3);
         agentRB.angularVelocity = default(Vector3);
+        agentRB.position = startPosition;
+        agentRB.rotation = startRotation;
+
+
     }
 
     public override void AgentOnDone()
@@ -79,20 +116,30 @@ public class LanderAgent : Agent
             {
                 case NoAction:
                     // do nothing
+                    centerThrust.SetActive(false);
+                    leftThrust.SetActive(false);
+                    rightThrust.SetActive(false);
                     break;
                 case Up: //Thrust UP
                     agentRB.AddForceAtPosition(transform.up * centerThrustForce, centerThrust.transform.position, ForceMode.Force);
+                    centerThrust.SetActive(true);
                     break;
                 case Left: //Thrust LEFT
                     agentRB.AddForceAtPosition(transform.up * auxiliarTrustForce, leftThrust.transform.position, ForceMode.Force);
+                    leftThrust.SetActive(true);
                     break;
                 case Right: //Thrust RIGHT
                     agentRB.AddForceAtPosition(transform.up * auxiliarTrustForce, rightThrust.transform.position, ForceMode.Force);
+                    rightThrust.SetActive(true);
                     break;
                 default:
                     throw new ArgumentException("Invalid action value");
             }
         }
+    }
+
+    private void FixedUpdate()
+    {
 
     }
 
@@ -100,16 +147,6 @@ public class LanderAgent : Agent
     {
         float angle = Vector3.Angle(Vector3.up, transform.up);
 
-        //Debug.Log("Angle " + angle);
-
-        float x = Input.GetAxis("Horizontal");
-        float y = Input.GetAxis("Vertical");
-
-
-        if (angle > maxInclination && agentRB.velocity.magnitude > safeVelocity)
-        {
-            agent_state = AGENT_STATES.TILTED | AGENT_STATES.FAST;
-        }
         if (agentRB.velocity.magnitude > safeVelocity)
         {
             agent_state = AGENT_STATES.FAST;
@@ -121,6 +158,15 @@ public class LanderAgent : Agent
         else
         {
             agent_state = AGENT_STATES.STEADY;
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (agent_state != AGENT_STATES.STEADY)
+        {
+            agent_state = AGENT_STATES.CRASHED;
+            Debug.Log("rocket_state " + agent_state + " object " + other.gameObject.name);
         }
     }
 }
