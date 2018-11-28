@@ -8,6 +8,7 @@ public class LanderAcademy : Academy {
     public override void InitializeAcademy()
     {
         Monitor.verticalOffset = 1f;
+        Monitor.SetActive(true);
 
         // We increase the Physics solver iterations in order to
         // make walker joint calculations more accurate.

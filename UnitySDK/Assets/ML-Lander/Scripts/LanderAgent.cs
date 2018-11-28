@@ -13,6 +13,8 @@ public class LanderAgent : Agent
 
     [Space]
     public GameObject leftThrust, centerThrust, rightThrust;
+    bool isCrashed = false;
+    bool isLanded = false;
 
     LanderAcademy academy;
 
@@ -26,14 +28,11 @@ public class LanderAgent : Agent
     private const int Right = 3;
 
     [System.Flags]
-    public enum AGENT_STATES : int { STEADY = 1 << 0, TILTED = 1 << 1, FAST = 1 << 2, CRASHED = 1 << 3 }
+    public enum AGENT_STATES : int { STEADY = 1 << 0, TILTED = 1 << 1, FAST = 1 << 2, CRASHED = 1 << 3, LANDED = 1 << 4 }
     public AGENT_STATES agent_state = AGENT_STATES.STEADY;
 
     public override void InitializeAgent()
     {
-        Monitor.SetActive(true);
-
-
         base.InitializeAgent();
         academy = FindObjectOfType(typeof(LanderAcademy)) as LanderAcademy;
 
@@ -47,7 +46,7 @@ public class LanderAgent : Agent
     {
         AddVectorObs(agentRB.velocity); //Add the rocket velocity to the observation vector
 
-
+        Monitor.Log("agent velocity ", agentRB.velocity.ToString());
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
@@ -58,23 +57,29 @@ public class LanderAgent : Agent
         CheckAgentState();
 
         //Debug.Log("vectorAction[0] " + vectorAction[0].ToString());
-        Debug.Log("agent_state " + agent_state.ToString());
+        //Debug.Log("agent_state " + agent_state.ToString());
 
         switch (agent_state)
         {
             case AGENT_STATES.STEADY:
                 AddReward(0.01f);
+                Monitor.Log("Reward", 0.01f);
                 break;
             case AGENT_STATES.TILTED:
                 AddReward(-0.01f);
                 break;
             case AGENT_STATES.FAST:
                 AddReward(-0.01f);
+                Monitor.Log("Punishment", -0.01f);
                 break;
             case AGENT_STATES.CRASHED:
-                Debug.LogWarning("-1");
                 AddReward(-1f);
-                AgentReset();
+                Monitor.Log("Punishment", -1.0f);
+                Done();
+                break;
+            case AGENT_STATES.LANDED:
+                AddReward(1f);
+                Monitor.Log("Reward", 1.0f);
                 Done();
                 break;
             default:
@@ -86,6 +91,8 @@ public class LanderAgent : Agent
 
     public override void AgentReset()
     {
+        isCrashed = false;
+        isLanded = false;
         agentRB.velocity = default(Vector3);
         agentRB.angularVelocity = default(Vector3);
         agentRB.position = startPosition;
@@ -145,28 +152,38 @@ public class LanderAgent : Agent
 
     void CheckAgentState()
     {
-        float angle = Vector3.Angle(Vector3.up, transform.up);
+        if (!isCrashed && !isLanded)
+        {
+            float angle = Vector3.Angle(Vector3.up, transform.up);
 
-        if (agentRB.velocity.magnitude > safeVelocity)
-        {
-            agent_state = AGENT_STATES.FAST;
+            if (agentRB.velocity.magnitude > safeVelocity)
+            {
+                agent_state = AGENT_STATES.FAST;
+            }
+            else if (angle > maxInclination)
+            {
+                agent_state = AGENT_STATES.TILTED;
+            }
+            else
+            {
+                agent_state = AGENT_STATES.STEADY;
+            }
         }
-        else if (angle > maxInclination)
-        {
-            agent_state = AGENT_STATES.TILTED;
-        }
-        else
-        {
-            agent_state = AGENT_STATES.STEADY;
-        }
+
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if (agent_state != AGENT_STATES.STEADY)
+        if (agent_state != AGENT_STATES.STEADY || other.gameObject.tag != "goal")
         {
+            isCrashed = true;
             agent_state = AGENT_STATES.CRASHED;
             Debug.Log("rocket_state " + agent_state + " object " + other.gameObject.name);
+        }
+        else
+        {
+            agent_state = AGENT_STATES.LANDED;
+            isLanded = true;
         }
     }
 }
