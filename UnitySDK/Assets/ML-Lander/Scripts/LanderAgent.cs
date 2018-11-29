@@ -1,12 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using MLAgents;
 using System;
 
 public class LanderAgent : Agent
 {
-
     public float auxiliarTrustForce = 5.0f, centerThrustForce = 10.0f;
     public float safeVelocity = 5.0f; // Meters per second
     public float maxInclination = 15.0f;
@@ -47,12 +44,10 @@ public class LanderAgent : Agent
         agentRB = GetComponent<Rigidbody>();
         startPosition = agentRB.position;
         startRotation = agentRB.rotation;
-
     }
 
     public override void CollectObservations()
     {
-
         AddVectorObs(agentRB.velocity); //Add the rocket velocity to the observation vector
         AddVectorObs(distance); //Distance to the landing zone
         AddVectorObs(angle);
@@ -97,8 +92,6 @@ public class LanderAgent : Agent
         }
     }
 
-
-
     public override void AgentReset()
     {
         isCrashed = false;
@@ -107,8 +100,6 @@ public class LanderAgent : Agent
         agentRB.angularVelocity = default(Vector3);
         agentRB.position = startPosition;
         agentRB.rotation = startRotation;
-
-
     }
 
     public override void AgentOnDone()
@@ -166,6 +157,8 @@ public class LanderAgent : Agent
         //distance = target.transform.position - transform.position;
         distance = Vector3.Distance(target.transform.position, transform.position);
 
+        Debug.Log("distance; " + distance + " lastDistance: " + lastDistance);
+
         if (distance < lastDistance)
         {
             AddReward(0.01f);
@@ -175,7 +168,7 @@ public class LanderAgent : Agent
             AddReward(-0.01f);
         }
 
-        lastDistance = distance;
+        lastDistance = distance;        
 
         if (!isCrashed && !isLanded)
         {
