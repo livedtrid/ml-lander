@@ -11,6 +11,10 @@ public class LanderAgent : Agent
     public float safeVelocity = 5.0f; // Meters per second
     public float maxInclination = 15.0f;
 
+    float angle = 0.0f;
+
+    public GameObject target;
+
     [Space]
     public GameObject leftThrust, centerThrust, rightThrust;
     bool isCrashed = false;
@@ -21,6 +25,10 @@ public class LanderAgent : Agent
     Rigidbody agentRB;
     Vector3 startPosition;
     Quaternion startRotation;
+
+    //Vector3 distance = default(Vector3);
+    float distance = 0;
+    float lastDistance = 1000f;
 
     private const int NoAction = 0;  // do nothing!
     private const int Up = 1;
@@ -44,9 +52,15 @@ public class LanderAgent : Agent
 
     public override void CollectObservations()
     {
-        AddVectorObs(agentRB.velocity); //Add the rocket velocity to the observation vector
 
-        Monitor.Log("agent velocity ", agentRB.velocity.ToString());
+        AddVectorObs(agentRB.velocity); //Add the rocket velocity to the observation vector
+        AddVectorObs(distance); //Distance to the landing zone
+        AddVectorObs(angle);
+
+        Monitor.Log("Rocket velocity ", agentRB.velocity.ToString());
+        Monitor.Log("Rocket distance to the target ", distance.ToString());
+        Monitor.Log("Rocket inclination ", angle.ToString() + "º");
+        Monitor.Log("Total Reward ", GetCumulativeReward().ToString());
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
@@ -62,24 +76,20 @@ public class LanderAgent : Agent
         switch (agent_state)
         {
             case AGENT_STATES.STEADY:
-                AddReward(0.01f);
-                Monitor.Log("Reward", 0.01f);
+                AddReward(0.1f);
                 break;
             case AGENT_STATES.TILTED:
-                AddReward(-0.01f);
+                AddReward(-0.001f);
                 break;
             case AGENT_STATES.FAST:
-                AddReward(-0.01f);
-                Monitor.Log("Punishment", -0.01f);
+                AddReward(-0.001f);
                 break;
             case AGENT_STATES.CRASHED:
                 AddReward(-1f);
-                Monitor.Log("Punishment", -1.0f);
                 Done();
                 break;
             case AGENT_STATES.LANDED:
                 AddReward(1f);
-                Monitor.Log("Reward", 1.0f);
                 Done();
                 break;
             default:
@@ -152,10 +162,23 @@ public class LanderAgent : Agent
 
     void CheckAgentState()
     {
+        angle = Vector3.Angle(Vector3.up, transform.up);
+        //distance = target.transform.position - transform.position;
+        distance = Vector3.Distance(target.transform.position, transform.position);
+
+        if (distance < lastDistance)
+        {
+            AddReward(0.01f);
+        }
+        else
+        {
+            AddReward(-0.01f);
+        }
+
+        lastDistance = distance;
+
         if (!isCrashed && !isLanded)
         {
-            float angle = Vector3.Angle(Vector3.up, transform.up);
-
             if (agentRB.velocity.magnitude > safeVelocity)
             {
                 agent_state = AGENT_STATES.FAST;
@@ -184,6 +207,7 @@ public class LanderAgent : Agent
         {
             agent_state = AGENT_STATES.LANDED;
             isLanded = true;
+            Debug.Log("rocket_state " + agent_state + " object " + other.gameObject.name);
         }
     }
 }
