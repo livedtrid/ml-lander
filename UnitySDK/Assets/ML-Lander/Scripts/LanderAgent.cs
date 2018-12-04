@@ -21,6 +21,7 @@ public class LanderAgent : Agent
 
     Rigidbody agentRB;
     Vector3 startPosition;
+    Vector3 direction;
     Quaternion startRotation;
 
     //Vector3 distance = default(Vector3);
@@ -48,12 +49,16 @@ public class LanderAgent : Agent
 
     public override void CollectObservations()
     {
-        AddVectorObs(agentRB.velocity); //Add the rocket velocity to the observation vector
+        AddVectorObs(agentRB.velocity.x); //Add the rocket velocity to the observation vector
+        AddVectorObs(agentRB.velocity.y);
         AddVectorObs(distance); //Distance to the landing zone
         AddVectorObs(angle);
+        AddVectorObs(direction.x);
+        AddVectorObs(direction.y);
 
         Monitor.Log("Rocket velocity ", agentRB.velocity.ToString());
         Monitor.Log("Rocket distance to the target ", distance.ToString());
+        Monitor.Log("Direction to the target ", direction.ToString());
         Monitor.Log("Rocket inclination ", angle.ToString() + "º");
         Monitor.Log("Total Reward ", GetCumulativeReward().ToString());
     }
@@ -66,30 +71,7 @@ public class LanderAgent : Agent
         CheckAgentState();
 
         //Debug.Log("vectorAction[0] " + vectorAction[0].ToString());
-        //Debug.Log("agent_state " + agent_state.ToString());
 
-        switch (agent_state)
-        {
-            case AGENT_STATES.STEADY:
-                AddReward(0.1f);
-                break;
-            case AGENT_STATES.TILTED:
-                AddReward(-0.001f);
-                break;
-            case AGENT_STATES.FAST:
-                AddReward(-0.001f);
-                break;
-            case AGENT_STATES.CRASHED:
-                AddReward(-1f);
-                Done();
-                break;
-            case AGENT_STATES.LANDED:
-                AddReward(1f);
-                Done();
-                break;
-            default:
-                break;
-        }
     }
 
     public override void AgentReset()
@@ -100,6 +82,7 @@ public class LanderAgent : Agent
         agentRB.angularVelocity = default(Vector3);
         agentRB.position = startPosition;
         agentRB.rotation = startRotation;
+        lastDistance = 1000f;
     }
 
     public override void AgentOnDone()
@@ -129,15 +112,16 @@ public class LanderAgent : Agent
                     rightThrust.SetActive(false);
                     break;
                 case Up: //Thrust UP
-                    agentRB.AddForceAtPosition(transform.up * centerThrustForce, centerThrust.transform.position, ForceMode.Force);
+                    agentRB.AddForceAtPosition(transform.up * centerThrustForce, centerThrust.transform.position, ForceMode.VelocityChange);
                     centerThrust.SetActive(true);
                     break;
                 case Left: //Thrust LEFT
-                    agentRB.AddForceAtPosition(transform.up * auxiliarTrustForce, leftThrust.transform.position, ForceMode.Force);
+                    agentRB.AddForceAtPosition(transform.up * auxiliarTrustForce, leftThrust.transform.position, ForceMode.VelocityChange);
+
                     leftThrust.SetActive(true);
                     break;
                 case Right: //Thrust RIGHT
-                    agentRB.AddForceAtPosition(transform.up * auxiliarTrustForce, rightThrust.transform.position, ForceMode.Force);
+                    agentRB.AddForceAtPosition(transform.up * auxiliarTrustForce, rightThrust.transform.position, ForceMode.VelocityChange);
                     rightThrust.SetActive(true);
                     break;
                 default:
@@ -156,19 +140,25 @@ public class LanderAgent : Agent
         angle = Vector3.Angle(Vector3.up, transform.up);
         //distance = target.transform.position - transform.position;
         distance = Vector3.Distance(target.transform.position, transform.position);
-
-        Debug.Log("distance; " + distance + " lastDistance: " + lastDistance);
+        direction = target.transform.position - transform.position;
+        
+        //Debug.Log("distance; " + distance + " lastDistance: " + lastDistance);
+        //Debug.Log("direction.magnitude; " + direction.magnitude);
 
         if (distance < lastDistance)
         {
-            AddReward(0.01f);
+            AddReward(0.02f);
+            Debug.Log("Moving Closer");
         }
         else
         {
-            AddReward(-0.01f);
+            AddReward(-0.001f * Math.Abs(distance));
+            Debug.Log("Moving Away");
         }
 
-        lastDistance = distance;        
+        lastDistance = distance;
+
+        //Debug.Log("agent_state " + agent_state.ToString());
 
         if (!isCrashed && !isLanded)
         {
@@ -186,6 +176,29 @@ public class LanderAgent : Agent
             }
         }
 
+        switch (agent_state)
+        {
+            case AGENT_STATES.STEADY:
+                AddReward(0.1f);
+                break;
+            case AGENT_STATES.TILTED:
+                AddReward(-0.001f);
+                break;
+            case AGENT_STATES.FAST:
+                AddReward(-0.001f);
+                break;
+            case AGENT_STATES.CRASHED:
+                //Done();
+                //AddReward(-10f);
+                break;
+            case AGENT_STATES.LANDED:
+                //Done();
+                //AddReward(10f);
+                break;
+            default:
+                break;
+        }
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -195,12 +208,18 @@ public class LanderAgent : Agent
             isCrashed = true;
             agent_state = AGENT_STATES.CRASHED;
             Debug.Log("rocket_state " + agent_state + " object " + other.gameObject.name);
+
+            Done();
+            AddReward(-10f);
         }
         else
         {
             agent_state = AGENT_STATES.LANDED;
             isLanded = true;
             Debug.Log("rocket_state " + agent_state + " object " + other.gameObject.name);
+
+            Done();
+            AddReward(10f);
         }
     }
 }
