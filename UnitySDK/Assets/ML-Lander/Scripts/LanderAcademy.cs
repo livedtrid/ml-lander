@@ -7,7 +7,8 @@ public class LanderAcademy : Academy {
 
     public override void InitializeAcademy()
     {
-        Monitor.verticalOffset = 1f;
+        Monitor.verticalOffset = 200f;
+       
         Monitor.SetActive(true);
 
         //We increase the Physics solver iterations in order to
