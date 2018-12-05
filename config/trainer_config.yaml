@@ -268,3 +268,13 @@ StudentRecurrentBrain:
     use_recurrent: true
     sequence_length: 32
     buffer_size: 128
+
+LanderBrain:
+    normalize: true
+    num_epoch: 3
+    time_horizon: 1000
+    batch_size: 2024
+    buffer_size: 20240
+    gamma: 0.995
+    max_steps: 1e6
+    summary_freq: 3000
