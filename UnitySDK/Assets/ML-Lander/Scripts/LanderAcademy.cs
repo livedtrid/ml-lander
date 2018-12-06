@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using MLAgents;
 
-public class LanderAcademy : Academy {
+public class LanderAcademy : Academy { 
 
     public override void InitializeAcademy()
     {
@@ -18,4 +18,5 @@ public class LanderAcademy : Academy {
         Time.fixedDeltaTime = 0.01333f; //(75fps). default is .2 (60fps)
         Time.maximumDeltaTime = .15f; // Default is .33
     }
+
 }

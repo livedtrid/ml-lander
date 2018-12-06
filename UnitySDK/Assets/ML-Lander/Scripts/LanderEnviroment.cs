@@ -10,6 +10,6 @@ public class LanderEnviroment : MonoBehaviour {
     {
         float randomX = Random.Range(-45.0f, 45.0f);
 
-        islandTransform.position = new Vector3(randomX, islandTransform.position.y, islandTransform.position.z);
+        islandTransform.position = new Vector3((int)randomX, islandTransform.position.y, islandTransform.position.z);
     }
 }

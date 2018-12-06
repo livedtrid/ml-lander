@@ -4,4 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/ML-Lander/Scenes/ML-Lander.unity
+    guid: 741568dab07c0e7408e3effb71b8d843
+  m_configObjects: {}
