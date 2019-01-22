@@ -23,10 +23,10 @@ public class LanderAgent : Agent
     private GameObject enviroment; //This way we can have multiple enviroments at the same time to improve learning time
 
     [SerializeField]
-    private GameObject island;
+    private GameObject island; //To be able to track the islando position we need to store a reference
 
-    Rigidbody agentRB;
-    Vector3 startPosition;
+    Rigidbody agentRB; // 
+    Vector3 startPosition; // 
     
     Quaternion startRotation;       
     
