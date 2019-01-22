@@ -1,4 +1,4 @@
-<img src="docs/images/iscte.png" align="middle" width="3000"/>
+<img src="docs/images/Cover.jpg" align="middle" width="3000"/>
 
 # ML-Lander
 
@@ -7,13 +7,19 @@ Made with Unity Machine Learning Agents Toolkit
 This project was done within the scope of the Machine Learning curricular unit.
 
 FACULTY
+
 Ana Maria de Almeida
+
 Luís Nunes
 
 Master in Computer Engineering
 
 ISCTE - University of Lisbon 2018
+
 iscte-iul.pt
+
+<img src="docs/images/iscte.png" align="middle" width="3000"/>
+
 
 **The Unity Machine Learning Agents Toolkit** (ML-Agents) is an open-source
 Unity plugin that enables games and simulations to serve as environments for
