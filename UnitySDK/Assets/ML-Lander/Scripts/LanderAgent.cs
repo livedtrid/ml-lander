@@ -114,7 +114,7 @@ public class LanderAgent : Agent
         Monitor.Log("Rocket relative position X ", relativePosX.ToString());
         Monitor.Log("Rocket relative position Y ", relativePosY.ToString());
         Monitor.Log("Island relative position X ", islandRelativePosX.ToString());
-        Monitor.Log("Island relative position Y ", islandRelativePosY.ToString());
+       // Monitor.Log("Island relative position Y ", islandRelativePosY.ToString());
         Monitor.Log("Rocket velocity X ", rocketVelocityX.ToString());
         Monitor.Log("Rocket velocity Y ", rocketVelocityY.ToString());
         Monitor.Log("Rocket alignment ", rocketAlignment.ToString());
