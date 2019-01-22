@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class QLanderEnviroment : MonoBehaviour {
+public class QLanderEnviroment : MonoBehaviour
+{
 
     public class EnvironmentParameters
     {
@@ -25,7 +26,7 @@ public class QLanderEnviroment : MonoBehaviour {
         public bool begun;
         public bool acceptingSteps;
 
-        public Agent agent;
+        public QLanderAgent agent;
         public int comPort;
         public int frameToSkip;
         public int framesSinceAction;
@@ -144,3 +145,4 @@ public class QLanderEnviroment : MonoBehaviour {
             }
         }
     }
+}
