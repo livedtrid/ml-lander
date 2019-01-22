@@ -58,6 +58,7 @@ public class LanderAgent : Agent
         startRotation = agentRB.rotation;
 
         landerEnviroment.SetIslandOnARandomPosition();
+        landerEnviroment.SetRocketRandomPosition();
         UpdateValues();
     }
 
@@ -135,7 +136,7 @@ public class LanderAgent : Agent
         debugString += "direction y " + direction.normalized.y.ToString() + "\n";
         debugString += "distance " + distance.ToString() + "\n\n";
 
-        Debug.Log(debugString);
+        //Debug.Log(debugString);
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
@@ -147,6 +148,7 @@ public class LanderAgent : Agent
     public override void AgentReset()
     {
         landerEnviroment.SetIslandOnARandomPosition();
+        landerEnviroment.SetRocketRandomPosition();
 
         agentRB.constraints = RigidbodyConstraints.FreezeAll;
 
@@ -154,7 +156,7 @@ public class LanderAgent : Agent
         isLanded = false;
         agentRB.velocity = default(Vector3);
         agentRB.angularVelocity = default(Vector3);
-        agentRB.position = startPosition;
+        //agentRB.position = startPosition;
         agentRB.rotation = startRotation;
         lastDistance = float.PositiveInfinity;
     }
@@ -219,7 +221,7 @@ public class LanderAgent : Agent
     void CheckAgentState()
     {
 
-        AddReward(-0.005f); // Finish as fast as possible
+        AddReward(-0.003f); // Finish as fast as possible
 
         if (isCrashed)
         {
@@ -239,22 +241,24 @@ public class LanderAgent : Agent
         {
             Debug.Log("Too Fast");
             Done();
-            AddReward(-1f);
+            AddReward(-0.5f);
         }
         else
         {
-            AddReward(0.005f);
+            AddReward(0.002f);
         }
 
         if (Math.Abs(rocketAngularVelocityZ) > 0.8)
         {
+            Debug.Log("Tilted");
             Done();
             AddReward(-1f);
         }
         else
         {
-            AddReward(0.005f);
+            AddReward(0.001f);
         }      
+        
         
         if (distance < lastDistance)
         {           
@@ -266,8 +270,8 @@ public class LanderAgent : Agent
         }
         else
         {
-            //Debug.Log("Moving Away " + (-0.001f * distance));
-            AddReward(-0.01f);
+            //Debug.Log("Moving Away " + (-0.0001f * distance));
+            //AddReward(-0.01f);
             
         }
 
