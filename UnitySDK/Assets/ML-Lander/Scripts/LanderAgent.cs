@@ -27,15 +27,10 @@ public class LanderAgent : Agent
 
     Rigidbody agentRB; // 
     Vector3 startPosition; // 
-    
-    Quaternion startRotation;       
-    
-    float lastDistance = float.PositiveInfinity;
 
-    private const int NoAction = 0;  // do nothing!
-    private const int Up = 1;
-    private const int Left = 2;
-    private const int Right = 3;
+    Quaternion startRotation;
+
+    float lastDistance = float.PositiveInfinity;
 
     //Agent states
     float relativePosX; // state 1
@@ -48,6 +43,11 @@ public class LanderAgent : Agent
     float rocketAngularVelocityZ; // state 8
     Vector3 direction; // state 9 (x) | state 10 (y)
     float distance; // state 11
+
+    private const int NoAction = 0;  // do nothing!
+    private const int Up = 1;
+    private const int Left = 2;
+    private const int Right = 3;
 
     public override void InitializeAgent()
     {
@@ -91,21 +91,21 @@ public class LanderAgent : Agent
     public override void CollectObservations()
     {
         AddVectorObs(relativePosX); // state 1
-        
+
         AddVectorObs(relativePosY); // state 2
-               
+
         AddVectorObs(islandRelativePosX); // state 3
-        
+
         AddVectorObs(islandRelativePosY); // state 4
-        
+
         AddVectorObs(rocketVelocityX); // state 5
-        
+
         AddVectorObs(rocketVelocityY); // state 6
-        
+
         AddVectorObs(rocketAlignment); // state 7
-      
+
         AddVectorObs(rocketAngularVelocityZ); // state 8
-       
+
         AddVectorObs(direction.normalized.x); // state 9
 
         AddVectorObs(direction.normalized.y); // state 10
@@ -115,7 +115,7 @@ public class LanderAgent : Agent
         Monitor.Log("Rocket relative position X ", relativePosX.ToString());
         Monitor.Log("Rocket relative position Y ", relativePosY.ToString());
         Monitor.Log("Island relative position X ", islandRelativePosX.ToString());
-       // Monitor.Log("Island relative position Y ", islandRelativePosY.ToString());
+        // Monitor.Log("Island relative position Y ", islandRelativePosY.ToString());
         Monitor.Log("Rocket velocity X ", rocketVelocityX.ToString());
         Monitor.Log("Rocket velocity Y ", rocketVelocityY.ToString());
         Monitor.Log("Rocket alignment ", rocketAlignment.ToString());
@@ -140,7 +140,7 @@ public class LanderAgent : Agent
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
-    {        
+    {
         CheckAgentState();
         MoveAgent(vectorAction);
     }
@@ -220,26 +220,25 @@ public class LanderAgent : Agent
 
     void CheckAgentState()
     {
+        AddReward(-0.003f); // Finish as soon as possible
 
-        AddReward(-0.003f); // Finish as fast as possible
-
-        if (isCrashed)
+        if (isCrashed) // Triggered by high speed colisions
         {
             Debug.Log("CRASHED");
             Done();
             AddReward(-1f);
         }
 
-        if (isLanded)
+        if (isLanded) // Landed successfully
         {
             Debug.Log("LANDED");
             Done();
             AddReward(1f);
         }
 
-        if (!IsSpeedOk())
+        if (!IsSpeedOk()) // Add rewards based on velocity
         {
-            Debug.Log("Too Fast");
+            Debug.Log("TOO FAST");
             Done();
             AddReward(-0.5f);
         }
@@ -248,31 +247,29 @@ public class LanderAgent : Agent
             AddReward(0.002f);
         }
 
-        if (Math.Abs(rocketAngularVelocityZ) > 0.8)
+        if (Math.Abs(rocketAngularVelocityZ) > 0.8) // Add rewards based on angular velocity
         {
-            Debug.Log("Tilted");
+            Debug.Log("TILTED");
             Done();
             AddReward(-1f);
         }
         else
         {
             AddReward(0.001f);
-        }      
-        
-        
-        if (distance < lastDistance)
-        {           
+        }
+
+        if (distance < lastDistance) // Add rewards based on distance - this is not working as intended
+        {
             if (distance > 0)
             {
-                //Debug.Log("Moving Closer " + (0.1f / distance));
                 AddReward(0.1f / distance);
-            }            
+            }
         }
         else
         {
-            //Debug.Log("Moving Away " + (-0.0001f * distance));
             //AddReward(-0.01f);
-            
+            AddReward((-0.0001f * distance));
+
         }
 
         lastDistance = distance;
